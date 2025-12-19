@@ -1,8 +1,10 @@
 {
   "version": 2,
-  "dgSpecHash": "iBm+Tfji6M0=",
+  "dgSpecHash": "RS7+KiHe9YY=",
   "success": true,
   "projectFilePath": "C:\\Coding\\Trisy\\Trisy.csproj",
-  "expectedPackageFiles": [],
+  "expectedPackageFiles": [
+    "C:\\Users\\Nicholas\\.nuget\\packages\\netcord\\1.0.0-alpha.451\\netcord.1.0.0-alpha.451.nupkg.sha512"
+  ],
   "logs": []
 }

@@ -1,0 +1,1 @@
+set DISCORD_TOKEN=your_token_here

@@ -1,11 +1,43 @@
 {
   "version": 3,
   "targets": {
-    "net10.0": {}
+    "net10.0": {
+      "NetCord/1.0.0-alpha.451": {
+        "type": "package",
+        "compile": {
+          "lib/net9.0/NetCord.dll": {
+            "related": ".xml"
+          }
+        },
+        "runtime": {
+          "lib/net9.0/NetCord.dll": {
+            "related": ".xml"
+          }
+        }
+      }
+    }
   },
-  "libraries": {},
+  "libraries": {
+    "NetCord/1.0.0-alpha.451": {
+      "sha512": "aqSqfi9N8upOTK+TcHPdGQMgqOPDRw/6CdnrHxb8ygnDkmXOWFkVPJWgLbZuVRw+vtg95jFTiPok6ApaTpXVsQ==",
+      "type": "package",
+      "path": "netcord/1.0.0-alpha.451",
+      "files": [
+        ".nupkg.metadata",
+        ".signature.p7s",
+        "ICON.png",
+        "README.md",
+        "lib/net9.0/NetCord.dll",
+        "lib/net9.0/NetCord.xml",
+        "netcord.1.0.0-alpha.451.nupkg.sha512",
+        "netcord.nuspec"
+      ]
+    }
+  },
   "projectFileDependencyGroups": {
-    "net10.0": []
+    "net10.0": [
+      "NetCord >= 1.0.0-alpha.451"
+    ]
   },
   "packageFolders": {
     "C:\\Users\\Nicholas\\.nuget\\packages\\": {}
@@ -49,6 +81,12 @@
     "frameworks": {
       "net10.0": {
         "targetAlias": "net10.0",
+        "dependencies": {
+          "NetCord": {
+            "target": "Package",
+            "version": "[1.0.0-alpha.451, )"
+          }
+        },
         "imports": [
           "net461",
           "net462",
