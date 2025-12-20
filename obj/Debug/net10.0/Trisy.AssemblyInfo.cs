@@ -13,7 +13,7 @@ using System.Reflection;
 [assembly: System.Reflection.AssemblyCompanyAttribute("Trisy")]
 [assembly: System.Reflection.AssemblyConfigurationAttribute("Debug")]
 [assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
-[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+31461fd21fe65e521378eb4d398c23ba3a3e5198")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+a415375bc4dbc0d6484675e2fbf08dc9b5f93673")]
 [assembly: System.Reflection.AssemblyProductAttribute("Trisy")]
 [assembly: System.Reflection.AssemblyTitleAttribute("Trisy")]
 [assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]
