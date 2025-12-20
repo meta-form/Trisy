@@ -5,13 +5,26 @@ using NetCord.Logging;
 string discordToken = Environment.GetEnvironmentVariable("DISCORD_TOKEN") ?? throw new InvalidOperationException("DISCORD_TOKEN environment variable is not set.");
 GatewayClient client = new(new BotToken(discordToken), new GatewayClientConfiguration
 {
-    Intents = GatewayIntents.GuildMessages | GatewayIntents.MessageContent,
+    Intents = GatewayIntents.GuildMessages | GatewayIntents.MessageContent | GatewayIntents.GuildPresences,
 });
 
-client.MessageCreate += message =>
+client.MessageCreate += async message =>
 {
     Console.WriteLine(message.Author.Username + ": " + message.Content);
-    return default;
+
+    if (message.Content.StartsWith("/insult"))
+    {
+        string msg = "Tu es un idiot.";
+        Console.WriteLine($"Bot sending {msg} in channel: {message.Channel}");
+        await client.Rest.SendMessageAsync(message.ChannelId, msg);
+    }
+    return;
+};
+
+client.PresenceUpdate += async presence =>
+{
+    Console.WriteLine($"User {presence.User.Username} is now {presence.Status}");
+    return;
 };
 
 await client.StartAsync();
