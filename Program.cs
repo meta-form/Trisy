@@ -68,6 +68,11 @@ client.TypingStart += async typing =>
     if (user != null)
     {
         Console.WriteLine($"User {user.Username} is now typing");
+        string msg = $"@{user.Username} J'te vois écrire sale animal";
+        NetCord.Rest.RestGuild guild = await client.Rest.GetGuildAsync(user.GuildId);
+        ulong systemChannelId = guild.SystemChannelId ?? 0;
+        Channel systemChannel = await client.Rest.GetChannelAsync(systemChannelId);
+        await client.Rest.SendMessageAsync(systemChannel.Id, msg);
     }
 };
 await client.StartAsync();
