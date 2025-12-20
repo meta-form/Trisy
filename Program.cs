@@ -62,10 +62,11 @@ client.PresenceUpdate += async presence =>
     }
     return;
 };
+
 client.TypingStart += async typing =>
 {
     var user = typing.User;
-    if (user != null)
+    if (false && user != null)
     {
         Console.WriteLine($"User {user.Username} is now typing");
         string msg = $"@{user.Username} J'te vois écrire sale animal";
@@ -75,5 +76,7 @@ client.TypingStart += async typing =>
         await client.Rest.SendMessageAsync(systemChannel.Id, msg);
     }
 };
+
+
 await client.StartAsync();
 await Task.Delay(-1);
