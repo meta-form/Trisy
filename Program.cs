@@ -46,7 +46,7 @@ client.PresenceUpdate += async presence =>
 {
     Console.WriteLine($"User {presence.User.Username} is now {presence.Status}");
 
-    if (presence.Status == UserStatusType.Online)
+    if (presence.User.Username.Trim() != "" && presence.Status == UserStatusType.Online)
     {
         string msg = $"@{presence.User.Username} Je te vois.";
 
