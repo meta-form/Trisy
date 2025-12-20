@@ -2,10 +2,17 @@
 using NetCord;
 using NetCord.Gateway;
 using NetCord.Logging;
+using NetCord.Rest;
 
 string discordToken =
     Environment.GetEnvironmentVariable("DISCORD_TOKEN")
     ?? throw new InvalidOperationException("DISCORD_TOKEN environment variable is not set.");
+
+string dataJson = File.ReadAllText("data.json");
+var data = System.Text.Json.JsonSerializer.Deserialize<Dictionary<string, List<string>>>(dataJson)
+    ?? throw new InvalidOperationException("Failed to deserialize data.json.");
+
+Console.WriteLine("---Bot started---");
 GatewayClient client = new(
     new BotToken(discordToken),
     new GatewayClientConfiguration
@@ -25,10 +32,12 @@ client.MessageCreate += async message =>
 
     if (message.Content.StartsWith("/insult"))
     {
-        string msg = "Tu es un idiot.";
+        if (data["insults"].Count == 0)
+            return;
 
-        await client.Rest.SendMessageAsync(message.ChannelId, msg);
-        Console.WriteLine($"Bot sent {msg} in channel: {message.Channel}");
+        string msg = data["insults"][new Random().Next(data["insults"].Count)];
+        await message.ReplyAsync(msg);
+        Console.WriteLine($"Bot sent {msg} to {message.Author.Username}");
     }
     return;
 };
@@ -56,8 +65,8 @@ client.PresenceUpdate += async presence =>
 client.TypingStart += async typing =>
 {
     var user = typing.User;
-    if(user != null)
-    {   
+    if (user != null)
+    {
         Console.WriteLine($"User {user.Username} is now typing");
     }
 };
