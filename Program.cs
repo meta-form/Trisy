@@ -1,4 +1,5 @@
-﻿using System.Runtime.CompilerServices;
+﻿using System.Diagnostics;
+using System.Runtime.CompilerServices;
 using NetCord;
 using NetCord.Gateway;
 using NetCord.Logging;
@@ -66,7 +67,7 @@ client.PresenceUpdate += async presence =>
 client.TypingStart += async typing =>
 {
     var user = typing.User;
-    if (false && user != null)
+    if (false && user != null) // Deactivated
     {
         Console.WriteLine($"User {user.Username} is now typing");
         string msg = $"@{user.Username} J'te vois écrire sale animal";
@@ -75,6 +76,26 @@ client.TypingStart += async typing =>
         Channel systemChannel = await client.Rest.GetChannelAsync(systemChannelId);
         await client.Rest.SendMessageAsync(systemChannel.Id, msg);
     }
+};
+
+client.PresenceUpdate += async userUpdate =>
+{
+    foreach (var activity in userUpdate.Activities)
+    {
+        string msg = $"@{userUpdate.User.Username} y joue a {activity.Name} le sale";
+        NetCord.Rest.RestGuild guild = await client.Rest.GetGuildAsync(userUpdate.GuildId);
+        ulong systemChannelId = guild.SystemChannelId ?? 0;
+        Channel systemChannel = await client.Rest.GetChannelAsync(systemChannelId);
+        await client.Rest.SendMessageAsync(systemChannel.Id, msg);
+
+
+        var time = activity.Timestamps.StartTime;
+        var end = activity.Timestamps.EndTime;
+        
+        Console.WriteLine("debut " + time);
+        Console.WriteLine("fin " + end);
+    }
+
 };
 
 
