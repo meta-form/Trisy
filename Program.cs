@@ -66,6 +66,14 @@ client.MessageCreate += async message =>
 
         return;
     }
+    if (message.Content.StartsWith("/gamerank"))
+    {
+        string msg = DbGetTop5GameTime();
+        await message.ReplyAsync(msg);
+        Console.WriteLine($"Bot sent {msg} to {message.Author.Username}");
+
+        return;
+    }
 };
 
 client.PresenceUpdate += async presence =>
@@ -167,6 +175,39 @@ void DbCreateUserInfo(GuildUser member, UserActivity actv)
                 insertCommand.ExecuteNonQuery();
             }
         }
+}
+
+/*
+    using var command = SqliteDb.CreateCommand();
+    command.CommandText = "SELECT * FROM UserInfo WHERE Username = '" + username + "'";
+    */
+
+string DbGetTop5GameTime()
+{
+    string msg;
+    var usernames = new List<string>();
+    var games = new List<string>();
+    var timePlayedMins = new List<string>();
+
+    using var command = SqliteDb.CreateCommand();
+    command.CommandText = "SELECT Username,GamePlayed,TimePlayedMins FROM UserInfo ORDER BY TimePlayedMins DESC LIMIT 5";
+
+    using var reader = command.ExecuteReader();
+    while(reader.Read())
+    {
+        usernames.Add(reader["Username"].ToString());
+        games.Add(reader["GamePlayed"].ToString());
+        timePlayedMins.Add(reader["TimePlayedMins"].ToString());
+    }
+
+    msg = "Voici le top 5 des joueurs qui ont le plus jouer et leur jeu!\n";
+
+    for (int i = 0; i < usernames.Count(); ++i)
+    {
+        msg += i + ". " + usernames[i] + " => " + games[i] + " :watch: " + timePlayedMins[i] + " mins\n";
+    }
+
+    return msg;
 }
 
 client.PresenceUpdate += async userUpdate =>
