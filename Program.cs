@@ -74,6 +74,14 @@ client.MessageCreate += async message =>
 
         return;
     }
+    if (message.Content.StartsWith("/help"))
+    {
+        string msg = DisplayHelp();
+        await message.ReplyAsync(msg);
+        Console.WriteLine($"Bot sent {msg} to {message.Author.Username}");
+
+        return;
+    }
 };
 
 client.PresenceUpdate += async presence =>
@@ -110,6 +118,13 @@ client.TypingStart += async typing =>
         await client.Rest.SendMessageAsync(systemChannel.Id, msg);
     }
 };
+
+string DisplayHelp()
+{
+    return "./gamerank Permet de voir les 5 joueurs ayant passer le plus de temps à gamer\n"
+    + "./insult Permet de te faire insulter\n"
+    + "./compliment Permet de te faire complimenter\n";
+}
 
 void DbCreateUserTable()
 {
@@ -210,29 +225,60 @@ string DbGetTop5GameTime()
     return msg;
 }
 
+void DbUpdateTimeUserInfo(int minutesSpent, string gameName, GuildUser member)
+{
+    using var insertCommand = SqliteDb.CreateCommand();
+
+    insertCommand.CommandText = "UPDATE UserInfo SET TimePlayedMins = TimePlayedMins + @TimePlayedMins WHERE Username = @Username AND GamePlayed = @GamePlayed;";
+
+    insertCommand.Parameters.Clear();
+    insertCommand.Parameters.AddWithValue("@Username", member.Username);
+    insertCommand.Parameters.AddWithValue("@GamePlayed", gameName);
+    insertCommand.Parameters.AddWithValue("@TimePlayedMins", minutesSpent);
+
+    insertCommand.ExecuteNonQuery();
+}
+
+Dictionary<string,DateTimeOffset> timePlayed = new Dictionary<string,DateTimeOffset>();
+Dictionary<string,string> gamePlayed = new Dictionary<string,string>();
+
 client.PresenceUpdate += async userUpdate =>
 {
     var guild = await client.Rest.GetGuildAsync(userUpdate.GuildId);
     var member = await client.Rest.GetGuildUserAsync(userUpdate.GuildId, userUpdate.User.Id);
+    var playingActivity = userUpdate.Activities.FirstOrDefault(a => a.Type == UserActivityType.Playing);
 
-    foreach (var activity in userUpdate.Activities)
+    if (playingActivity != null)
     {
-        string msg = $"@{member.Username} y joue a {activity.Name} le sale";
+        /*string msg = $"@{member.Username} y joue a {playingActivity.Name} le sale";
         NetCord.Rest.RestGuild guild1 = await client.Rest.GetGuildAsync(userUpdate.GuildId);
         ulong systemChannelId = guild1.SystemChannelId ?? 0;
         Channel systemChannel = await client.Rest.GetChannelAsync(systemChannelId);
-        await client.Rest.SendMessageAsync(systemChannel.Id, msg);
+        await client.Rest.SendMessageAsync(systemChannel.Id, msg);*/
 
-
+        Console.WriteLine($"{member.Username} plays {playingActivity.Name}");       
         DbCreateUser(member);
-        DbCreateUserInfo(member, activity);
+        DbCreateUserInfo(member, playingActivity);
 
-        var time = activity.Timestamps.StartTime;
-        var end = activity.Timestamps.EndTime;
+        timePlayed.Add(member.Username, DateTimeOffset.UtcNow);
+        gamePlayed.Add(member.Username, playingActivity.Name);
+        Console.WriteLine("On détecte qu'on joue...");
+    }
+    else
+    {
+        Console.WriteLine($"{member.Username} stopped playing and is now {userUpdate.Status}");       
 
-
-        Console.WriteLine("debut " + time);
-        Console.WriteLine("fin " + end);
+        DateTimeOffset startTime;
+        TimeSpan timeSpent;
+        string gameName= "";
+        if(timePlayed.TryGetValue(member.Username, out startTime) && gamePlayed.TryGetValue(member.Username, out gameName));
+        {
+            timeSpent = DateTimeOffset.UtcNow - startTime;
+            int minutesSpent = (int)timeSpent.TotalMinutes;
+            Console.WriteLine(minutesSpent);
+            DbUpdateTimeUserInfo(minutesSpent,gameName,member);
+            Console.WriteLine("time should have updated!!!!!");
+        }
     }
 };
 
