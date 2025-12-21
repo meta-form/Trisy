@@ -40,8 +40,20 @@ client.MessageCreate += async message =>
         string msg = data["insults"][new Random().Next(data["insults"].Count)];
         await message.ReplyAsync(msg);
         Console.WriteLine($"Bot sent {msg} to {message.Author.Username}");
+
+        return;
     }
-    return;
+    if (message.Content.StartsWith("/compliment"))
+    {
+        if (data["compliments"].Count == 0)
+            return;
+
+        string msg = data["compliments"][new Random().Next(data["compliments"].Count)];
+        await message.ReplyAsync(msg);
+        Console.WriteLine($"Bot sent {msg} to {message.Author.Username}");
+
+        return;
+    }
 };
 
 client.PresenceUpdate += async presence =>
