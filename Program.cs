@@ -1,9 +1,21 @@
 ﻿using System.Diagnostics;
 using System.Runtime.CompilerServices;
+using Microsoft.Data.Sqlite;
+using Microsoft.VisualBasic;
 using NetCord;
 using NetCord.Gateway;
 using NetCord.Logging;
 using NetCord.Rest;
+using SQLitePCL;
+
+// Start DB
+SQLitePCL.Batteries.Init();
+string leaderboardSqlFile = "Data Source=dbfiles\\leaderboard.db";
+using var SqliteDb = new SqliteConnection(leaderboardSqlFile);
+SqliteDb.Open();
+
+DbCreateUserTable();
+DbCreateUserInfoTable();
 
 string discordToken =
     Environment.GetEnvironmentVariable("DISCORD_TOKEN")
@@ -91,18 +103,92 @@ client.TypingStart += async typing =>
     }
 };
 
+void DbCreateUserTable()
+{
+    using var command = SqliteDb.CreateCommand();
+
+    command.CommandText = @"CREATE TABLE IF NOT EXISTS User (
+    Id          INTEGER PRIMARY KEY AUTOINCREMENT,
+    Username    TEXT    NOT NULL UNIQUE);";
+
+    command.ExecuteNonQuery();
+}
+
+void DbCreateUserInfoTable()
+{
+    using var command = SqliteDb.CreateCommand();
+
+    command.CommandText = @"CREATE TABLE IF NOT EXISTS UserInfo (
+    Id        INTEGER PRIMARY KEY AUTOINCREMENT,
+    Username  TEXT NOT NULL,
+    GamePlayed TEXT NOT NULL,
+    TimePlayedMins INTEGER NOT NULL);";
+
+    command.ExecuteNonQuery();
+}
+
+void DbCreateUser(GuildUser member)
+{
+        using var command = SqliteDb.CreateCommand();
+        command.CommandText = "SELECT Username FROM User where Username ='" + member.Username + "'";
+        using (var query = command.ExecuteReader())
+        {
+            if(!query.Read())
+            {
+                using var insertCommand = SqliteDb.CreateCommand();
+                // Le user n'existe pas donc on crée le user
+                insertCommand.CommandText = "INSERT INTO User (Username) VALUES (@Username)";
+
+                insertCommand.Parameters.Clear();
+                insertCommand.Parameters.AddWithValue("@Username", member.Username);
+
+                insertCommand.ExecuteNonQuery();
+            }
+        }
+}
+
+void DbCreateUserInfo(GuildUser member, UserActivity actv)
+{
+        using var command = SqliteDb.CreateCommand();
+        command.CommandText = "SELECT Username FROM UserInfo where Username ='" + member.Username + "' AND GamePlayed = '" + actv.Name + "'";
+        using (var query = command.ExecuteReader())
+        {
+            if(!query.Read())
+            {
+                using var insertCommand = SqliteDb.CreateCommand();
+                // Le user n'existe pas donc on crée le user
+                insertCommand.CommandText = "INSERT INTO UserInfo (Username, GamePlayed, TimePlayedMins) VALUES (@Username,@GamePlayed,@TimePlayedMins)";
+
+                insertCommand.Parameters.Clear();
+                insertCommand.Parameters.AddWithValue("@Username", member.Username);
+                insertCommand.Parameters.AddWithValue("@GamePlayed", actv.Name);
+                insertCommand.Parameters.AddWithValue("@TimePlayedMins", 0);
+
+                insertCommand.ExecuteNonQuery();
+            }
+        }
+}
+
 client.PresenceUpdate += async userUpdate =>
 {
+    var guild = await client.Rest.GetGuildAsync(userUpdate.GuildId);
+    var member = await client.Rest.GetGuildUserAsync(userUpdate.GuildId, userUpdate.User.Id);
+
     foreach (var activity in userUpdate.Activities)
     {
-        string msg = $"@{userUpdate.User.Username} y joue a {activity.Name} le sale";
-        NetCord.Rest.RestGuild guild = await client.Rest.GetGuildAsync(userUpdate.GuildId);
-        ulong systemChannelId = guild.SystemChannelId ?? 0;
+        string msg = $"@{member.Username} y joue a {activity.Name} le sale";
+        NetCord.Rest.RestGuild guild1 = await client.Rest.GetGuildAsync(userUpdate.GuildId);
+        ulong systemChannelId = guild1.SystemChannelId ?? 0;
         Channel systemChannel = await client.Rest.GetChannelAsync(systemChannelId);
         await client.Rest.SendMessageAsync(systemChannel.Id, msg);
 
+
+        DbCreateUser(member);
+        DbCreateUserInfo(member, activity);
+
         var time = activity.Timestamps.StartTime;
         var end = activity.Timestamps.EndTime;
+
 
         Console.WriteLine("debut " + time);
         Console.WriteLine("fin " + end);
