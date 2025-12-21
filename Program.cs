@@ -10,7 +10,8 @@ string discordToken =
     ?? throw new InvalidOperationException("DISCORD_TOKEN environment variable is not set.");
 
 string dataJson = File.ReadAllText("data.json");
-var data = System.Text.Json.JsonSerializer.Deserialize<Dictionary<string, List<string>>>(dataJson)
+var data =
+    System.Text.Json.JsonSerializer.Deserialize<Dictionary<string, List<string>>>(dataJson)
     ?? throw new InvalidOperationException("Failed to deserialize data.json.");
 
 Console.WriteLine("---Bot started---");
@@ -39,28 +40,40 @@ client.MessageCreate += async message =>
         string msg = data["insults"][new Random().Next(data["insults"].Count)];
         await message.ReplyAsync(msg);
         Console.WriteLine($"Bot sent {msg} to {message.Author.Username}");
+
+        return;
     }
-    return;
+    if (message.Content.StartsWith("/compliment"))
+    {
+        if (data["compliments"].Count == 0)
+            return;
+
+        string msg = data["compliments"][new Random().Next(data["compliments"].Count)];
+        await message.ReplyAsync(msg);
+        Console.WriteLine($"Bot sent {msg} to {message.Author.Username}");
+
+        return;
+    }
 };
 
 client.PresenceUpdate += async presence =>
 {
     Console.WriteLine($"User {presence.User.Username} is now {presence.Status}");
 
-    if (presence.User.Username.Trim() != "" && presence.Status == UserStatusType.Online)
-    {
-        string msg = $"@{presence.User.Username} Je te vois.";
+    // if (presence.User.Username.Trim() != "" && presence.Status == UserStatusType.Online)
+    // {
+    //     string msg = $"@{presence.User.Username} Je te vois.";
 
-        NetCord.Rest.RestGuild guild = await client.Rest.GetGuildAsync(presence.GuildId);
-        Console.WriteLine($"Fetched guild: {guild.Name}");
+    //     NetCord.Rest.RestGuild guild = await client.Rest.GetGuildAsync(presence.GuildId);
+    //     Console.WriteLine($"Fetched guild: {guild.Name}");
 
-        ulong systemChannelId = guild.SystemChannelId ?? 0;
-        Console.WriteLine($"System channel id: {systemChannelId}");
-        Channel systemChannel = await client.Rest.GetChannelAsync(systemChannelId);
-        Console.WriteLine($"Fetched channel: {systemChannel}");
-        await client.Rest.SendMessageAsync(systemChannel.Id, msg);
-        Console.WriteLine($"Bot sent {msg} in channel: {systemChannel}");
-    }
+    //     ulong systemChannelId = guild.SystemChannelId ?? 0;
+    //     Console.WriteLine($"System channel id: {systemChannelId}");
+    //     Channel systemChannel = await client.Rest.GetChannelAsync(systemChannelId);
+    //     Console.WriteLine($"Fetched channel: {systemChannel}");
+    //     await client.Rest.SendMessageAsync(systemChannel.Id, msg);
+    //     Console.WriteLine($"Bot sent {msg} in channel: {systemChannel}");
+    // }
     return;
 };
 
@@ -88,16 +101,13 @@ client.PresenceUpdate += async userUpdate =>
         Channel systemChannel = await client.Rest.GetChannelAsync(systemChannelId);
         await client.Rest.SendMessageAsync(systemChannel.Id, msg);
 
-
         var time = activity.Timestamps.StartTime;
         var end = activity.Timestamps.EndTime;
-        
+
         Console.WriteLine("debut " + time);
         Console.WriteLine("fin " + end);
     }
-
 };
-
 
 await client.StartAsync();
 await Task.Delay(-1);
