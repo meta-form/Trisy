@@ -278,6 +278,8 @@ client.PresenceUpdate += async userUpdate =>
             Console.WriteLine(minutesSpent);
             DbUpdateTimeUserInfo(minutesSpent,gameName,member);
             Console.WriteLine("time should have updated!!!!!");
+            gamePlayed.Remove(member.Username);
+            timePlayed.Remove(member.Username);
         }
     }
 };
